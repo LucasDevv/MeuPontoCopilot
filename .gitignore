@@ -1,0 +1,54 @@
+## .NET / Visual Studio
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## VS IDE
+.vs/
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+## Rider / JetBrains
+.idea/
+*.sln.iml
+
+## User-specific files
+*.rsuser
+*.pidb
+*.dbmdl
+*.jfm
+
+## Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+## App data (local settings/history created at runtime)
+MeuPonto_settings.json
+MeuPonto_history.json
+
+## Publish output
+publish/
