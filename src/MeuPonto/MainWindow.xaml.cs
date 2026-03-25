@@ -2,7 +2,6 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
-using MeuPonto.Services.Interfaces;
 using MeuPonto.Views;
 using Windows.Graphics;
 
@@ -14,15 +13,12 @@ namespace MeuPonto;
 /// </summary>
 public sealed partial class MainWindow : Window
 {
-    private readonly ISettingsService _settingsService;
     private AppWindow? _appWindow;
     private bool _isHidingToTray;
 
     public MainWindow()
     {
         InitializeComponent();
-
-        _settingsService = App.GetService<ISettingsService>();
 
         // Estender conteúdo até a titlebar (mesma cor do background)
         ExtendsContentIntoTitleBar = true;
@@ -35,9 +31,6 @@ public sealed partial class MainWindow : Window
 
         // Navegar para página principal
         ContentFrame.Navigate(typeof(MainPage));
-
-        // Interceptar fechamento
-        Closed += OnWindowClosed;
     }
 
     /// <summary>Mostra a janela (restaura de minimizado/oculto).</summary>
@@ -100,15 +93,6 @@ public sealed partial class MainWindow : Window
             var x = (workArea.Width - size.Width) / 2 + workArea.X;
             var y = (workArea.Height - size.Height) / 2 + workArea.Y;
             appWindow.Move(new PointInt32(x, y));
-        }
-    }
-
-    private void OnWindowClosed(object sender, WindowEventArgs args)
-    {
-        if (_settingsService.Settings.MinimizeToTrayOnClose)
-        {
-            args.Handled = true;
-            _appWindow?.Hide();
         }
     }
 }
