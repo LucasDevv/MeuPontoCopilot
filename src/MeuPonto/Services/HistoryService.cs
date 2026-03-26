@@ -75,6 +75,21 @@ public class HistoryService : IHistoryService
         await PersistRecordsAsync();
     }
 
+    public async Task UpdateRecordAsync(DateTime originalDate, DateTime? originalEntryTime, TimeRecord updated)
+    {
+        lock (_lock)
+        {
+            var index = _records.FindIndex(r =>
+                r.Date.Date == originalDate.Date &&
+                r.EntryTime == originalEntryTime);
+
+            if (index >= 0)
+                _records[index] = updated;
+        }
+
+        await PersistRecordsAsync();
+    }
+
     public List<TimeRecord> GetRecords()
     {
         lock (_lock)
@@ -97,7 +112,7 @@ public class HistoryService : IHistoryService
     public async Task ExportCsvAsync(string filePath)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("Data;Entrada;Saída;Total;Status");
+        sb.AppendLine("Data;Entrada;Saída;Total;Pausas;Status;Editado");
 
         List<TimeRecord> snapshot;
         lock (_lock)
@@ -111,8 +126,12 @@ public class HistoryService : IHistoryService
             var entry = r.EntryTime?.ToString("HH:mm:ss") ?? "--:--:--";
             var exit = r.ExitTime?.ToString("HH:mm:ss") ?? "--:--:--";
             var total = Helpers.TimeFormatHelper.FormatDuration(r.TotalWorked);
+            var pauses = r.PauseCount > 0
+                ? $"{Helpers.TimeFormatHelper.FormatDurationShort(r.TotalPauseTime)} ({r.PauseCount}x)"
+                : "--";
             var status = r.Status == RecordStatus.Complete ? "Completo" : "Incompleto";
-            sb.AppendLine($"{date};{entry};{exit};{total};{status}");
+            var edited = r.IsManuallyEdited ? $"Sim ({r.LastEditedAt:dd/MM/yyyy HH:mm})" : "Não";
+            sb.AppendLine($"{date};{entry};{exit};{total};{pauses};{status};{edited}");
         }
 
         await File.WriteAllTextAsync(filePath, sb.ToString(), Encoding.UTF8);

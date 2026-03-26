@@ -13,6 +13,9 @@ public interface IHistoryService
     /// <summary>Adiciona ou atualiza um registro no histórico.</summary>
     Task SaveRecordAsync(TimeRecord record);
 
+    /// <summary>Atualiza um registro existente identificado pela data original.</summary>
+    Task UpdateRecordAsync(DateTime originalDate, DateTime? originalEntryTime, TimeRecord updated);
+
     /// <summary>Retorna todos os registros em memória.</summary>
     List<TimeRecord> GetRecords();
 

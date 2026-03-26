@@ -25,4 +25,10 @@ public class TimeRecord
 
     /// <summary>Status do registro (completo / incompleto).</summary>
     public RecordStatus Status { get; set; } = RecordStatus.Incomplete;
+
+    /// <summary>Indica se o registro foi editado manualmente.</summary>
+    public bool IsManuallyEdited { get; set; }
+
+    /// <summary>Data/hora da última edição manual.</summary>
+    public DateTime? LastEditedAt { get; set; }
 }

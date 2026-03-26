@@ -15,6 +15,7 @@ namespace MeuPonto.ViewModels;
 public partial class HistoryViewModel : ObservableObject
 {
     private readonly IHistoryService _historyService;
+    private readonly IWorkSessionService _workSessionService;
 
     [ObservableProperty]
     public partial ObservableCollection<TimeRecordDisplay> Records { get; set; } = [];
@@ -28,9 +29,30 @@ public partial class HistoryViewModel : ObservableObject
     [ObservableProperty]
     public partial string RecordCount { get; set; } = "0 registros";
 
-    public HistoryViewModel(IHistoryService historyService)
+    // ─── Estado de edição ────────────────────────────────────────────
+
+    [ObservableProperty]
+    public partial bool IsEditing { get; set; }
+
+    [ObservableProperty]
+    public partial string EditEntryTime { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string EditExitTime { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string EditTotalWorked { get; set; } = "";
+
+    [ObservableProperty]
+    public partial string EditValidationError { get; set; } = "";
+
+    private TimeRecordDisplay? _editingRecord;
+    private TimeRecord? _editingSource;
+
+    public HistoryViewModel(IHistoryService historyService, IWorkSessionService workSessionService)
     {
         _historyService = historyService;
+        _workSessionService = workSessionService;
     }
 
     /// <summary>Carrega registros ao entrar na tela.</summary>
@@ -89,7 +111,6 @@ public partial class HistoryViewModel : ObservableObject
             var filePath = Path.Combine(folder, fileName);
             await _historyService.ExportCsvAsync(filePath);
 
-            // Abre a pasta com o arquivo
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = folder,
@@ -102,6 +123,129 @@ public partial class HistoryViewModel : ObservableObject
         }
     }
 
+    // ─── Edição de registros ─────────────────────────────────────────
+
+    [RelayCommand]
+    private void BeginEdit(TimeRecordDisplay? record)
+    {
+        if (record == null || !record.CanEdit)
+            return;
+
+        _editingRecord = record;
+        _editingSource = record.SourceRecord;
+
+        EditEntryTime = _editingSource?.EntryTime?.ToString("HH:mm") ?? "";
+        EditExitTime = _editingSource?.ExitTime?.ToString("HH:mm") ?? "";
+        EditValidationError = "";
+        RecalculateEditTotal();
+
+        IsEditing = true;
+    }
+
+    [RelayCommand]
+    private void CancelEdit()
+    {
+        IsEditing = false;
+        _editingRecord = null;
+        _editingSource = null;
+        EditValidationError = "";
+    }
+
+    [RelayCommand]
+    private async Task SaveEdit()
+    {
+        if (_editingSource == null || _editingRecord == null)
+            return;
+
+        var validation = ValidateEdit();
+        if (validation != null)
+        {
+            EditValidationError = validation;
+            return;
+        }
+
+        var originalDate = _editingSource.Date;
+        var originalEntry = _editingSource.EntryTime;
+
+        var entryTime = ParseTime(_editingSource.Date, EditEntryTime);
+        var exitTime = string.IsNullOrWhiteSpace(EditExitTime) ? null : ParseTime(_editingSource.Date, EditExitTime);
+
+        _editingSource.EntryTime = entryTime;
+        _editingSource.ExitTime = exitTime;
+
+        if (entryTime.HasValue && exitTime.HasValue)
+        {
+            _editingSource.TotalWorked = exitTime.Value - entryTime.Value;
+            _editingSource.Status = RecordStatus.Complete;
+        }
+        else
+        {
+            _editingSource.TotalWorked = TimeSpan.Zero;
+            _editingSource.Status = RecordStatus.Incomplete;
+        }
+
+        _editingSource.IsManuallyEdited = true;
+        _editingSource.LastEditedAt = DateTime.Now;
+
+        await _historyService.UpdateRecordAsync(originalDate, originalEntry, _editingSource);
+
+        IsEditing = false;
+        _editingRecord = null;
+        _editingSource = null;
+
+        RefreshRecords();
+    }
+
+    /// <summary>Recalcula o total exibido durante a edição.</summary>
+    public void RecalculateEditTotal()
+    {
+        var entry = ParseTime(DateTime.Today, EditEntryTime);
+        var exit = ParseTime(DateTime.Today, EditExitTime);
+
+        if (entry.HasValue && exit.HasValue && exit.Value >= entry.Value)
+        {
+            var total = exit.Value - entry.Value;
+            EditTotalWorked = TimeFormatHelper.FormatDuration(total);
+        }
+        else
+        {
+            EditTotalWorked = "--:--:--";
+        }
+    }
+
+    private string? ValidateEdit()
+    {
+        if (string.IsNullOrWhiteSpace(EditEntryTime))
+            return "Informe a hora de entrada.";
+
+        var entry = ParseTime(DateTime.Today, EditEntryTime);
+        if (entry == null)
+            return "Hora de entrada inválida.";
+
+        if (!string.IsNullOrWhiteSpace(EditExitTime))
+        {
+            var exit = ParseTime(DateTime.Today, EditExitTime);
+            if (exit == null)
+                return "Hora de saída inválida.";
+
+            if (exit.Value < entry.Value)
+                return "Saída deve ser maior ou igual à entrada.";
+        }
+
+        return null;
+    }
+
+    private static DateTime? ParseTime(DateTime date, string time)
+    {
+        if (string.IsNullOrWhiteSpace(time))
+            return null;
+
+        if (TimeSpan.TryParse(time, out var ts))
+            return date.Date + ts;
+
+        return null;
+    }
+
     private void RefreshRecords()
     {
         var all = _historyService.GetRecords();
@@ -111,6 +255,11 @@ public partial class HistoryViewModel : ObservableObject
             var filterDateOnly = FilterDate.Value.Date;
             all = all.Where(r => r.Date.Date == filterDateOnly).ToList();
         }
+
+        // Verifica se há sessão ativa para bloquear edição do dia atual
+        var activeEntryDate = _workSessionService.IsActive
+            ? _workSessionService.EntryTime?.Date
+            : (DateTime?)null;
 
         Records = new ObservableCollection<TimeRecordDisplay>(
             all.Select(r => new TimeRecordDisplay
@@ -123,7 +272,13 @@ public partial class HistoryViewModel : ObservableObject
                     ? $"{TimeFormatHelper.FormatDurationShort(r.TotalPauseTime)} ({r.PauseCount}x)"
                     : "--",
                 Status = r.Status == RecordStatus.Complete ? "Completo" : "Incompleto",
-                IsComplete = r.Status == RecordStatus.Complete
+                IsComplete = r.Status == RecordStatus.Complete,
+                IsManuallyEdited = r.IsManuallyEdited,
+                EditedAtTooltip = r.LastEditedAt.HasValue
+                    ? $"Editado em {r.LastEditedAt.Value:dd/MM/yyyy HH:mm}"
+                    : "",
+                CanEdit = activeEntryDate == null || r.Date.Date != activeEntryDate.Value.Date,
+                SourceRecord = r
             }));
 
         RecordCount = $"{Records.Count} registro{(Records.Count != 1 ? "s" : "")}";
@@ -145,5 +300,9 @@ public class TimeRecordDisplay
     public string PauseTime { get; set; } = "";
     public string Status { get; set; } = "";
     public bool IsComplete { get; set; }
+    public bool IsManuallyEdited { get; set; }
+    public string EditedAtTooltip { get; set; } = "";
+    public bool CanEdit { get; set; } = true;
+    public TimeRecord? SourceRecord { get; set; }
     public SolidColorBrush StatusBadgeColor => IsComplete ? CompleteBrush : IncompleteBrush;
 }
