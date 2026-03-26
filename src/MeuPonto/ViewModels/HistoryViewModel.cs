@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI;
+using Microsoft.UI.Xaml.Media;
 using MeuPonto.Helpers;
 using MeuPonto.Models;
 using MeuPonto.Services.Interfaces;
@@ -130,10 +132,14 @@ public partial class HistoryViewModel : ObservableObject
 /// </summary>
 public class TimeRecordDisplay
 {
+    private static readonly SolidColorBrush CompleteBrush = new(ColorHelper.FromArgb(255, 56, 142, 60));     // verde
+    private static readonly SolidColorBrush IncompleteBrush = new(ColorHelper.FromArgb(255, 245, 124, 0));   // laranja
+
     public string Date { get; set; } = "";
     public string EntryTime { get; set; } = "";
     public string ExitTime { get; set; } = "";
     public string TotalWorked { get; set; } = "";
     public string Status { get; set; } = "";
     public bool IsComplete { get; set; }
+    public SolidColorBrush StatusBadgeColor => IsComplete ? CompleteBrush : IncompleteBrush;
 }

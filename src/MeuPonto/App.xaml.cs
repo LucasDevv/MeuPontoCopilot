@@ -66,8 +66,8 @@ public partial class App : Application
         services.AddSingleton<IAlertService, AlertService>();
         services.AddSingleton<INavigationService, NavigationService>();
 
-        // ViewModels (transient — nova instância por resolução)
-        services.AddTransient<MainViewModel>();
+        // ViewModels
+        services.AddSingleton<MainViewModel>();
         services.AddTransient<HistoryViewModel>();
         services.AddTransient<SettingsViewModel>();
     }

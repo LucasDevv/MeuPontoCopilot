@@ -28,8 +28,16 @@
                   ItemsSource="{x:Bind ViewModel.Records, Mode=OneWay}"
                   SelectionMode="None"
                   Margin="0,4,0,0">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0" />
+                    <Setter Property="MinHeight" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.Header>
-                <Grid ColumnDefinitions="100,90,90,90,100" Padding="12,8"
+                <Grid ColumnDefinitions="*,*,*,*,*" Padding="12,8"
                       Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                       CornerRadius="6,6,0,0">
                     <TextBlock Text="Data" FontSize="12" FontWeight="SemiBold" Grid.Column="0" />
@@ -41,14 +49,24 @@
             </ListView.Header>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid ColumnDefinitions="100,90,90,90,100" Padding="12,8"
-                          CornerRadius="4" Margin="0,1"
-                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
-                        <TextBlock Text="{Binding Date}" FontSize="13" Grid.Column="0" />
-                        <TextBlock Text="{Binding EntryTime}" FontSize="13" Grid.Column="1" />
-                        <TextBlock Text="{Binding ExitTime}" FontSize="13" Grid.Column="2" />
-                        <TextBlock Text="{Binding TotalWorked}" FontSize="13" FontWeight="SemiBold" Grid.Column="3" />
-                        <TextBlock Text="{Binding Status}" FontSize="12" Grid.Column="4" Opacity="0.7" />
+                    <Grid ColumnDefinitions="*,*,*,*,*" Padding="12,6"
+                          Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                          BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                          BorderThickness="0,0,0,1">
+                        <TextBlock Text="{Binding Date}" FontSize="13" Grid.Column="0"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding EntryTime}" FontSize="13" Grid.Column="1"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding ExitTime}" FontSize="13" Grid.Column="2"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding TotalWorked}" FontSize="13" FontWeight="SemiBold" Grid.Column="3"
+                                   VerticalAlignment="Center" />
+                        <Border Grid.Column="4" CornerRadius="10" Padding="8,3"
+                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="{Binding StatusBadgeColor}">
+                            <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="White" />
+                        </Border>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

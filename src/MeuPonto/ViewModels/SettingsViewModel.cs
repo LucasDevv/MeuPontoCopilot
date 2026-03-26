@@ -34,9 +34,6 @@ public partial class SettingsViewModel : ObservableObject
     public partial bool StartWithWindows { get; set; }
 
     [ObservableProperty]
-    public partial bool MinimizeToTrayOnClose { get; set; } = true;
-
-    [ObservableProperty]
     public partial bool EnableSound { get; set; } = true;
 
     [ObservableProperty]
@@ -63,7 +60,6 @@ public partial class SettingsViewModel : ObservableObject
         MaxLimit = TimeFormatHelper.FormatDurationShort(s.MaxLimit);
         HistoryPath = s.HistoryPath;
         StartWithWindows = s.StartWithWindows;
-        MinimizeToTrayOnClose = s.MinimizeToTrayOnClose;
         EnableSound = s.EnableSound;
         PlatformUrl = s.PlatformUrl;
         StatusMessage = "";
@@ -125,7 +121,6 @@ public partial class SettingsViewModel : ObservableObject
             MaxLimit = maxLimit,
             HistoryPath = HistoryPath?.Trim() ?? "",
             StartWithWindows = StartWithWindows,
-            MinimizeToTrayOnClose = MinimizeToTrayOnClose,
             EnableSound = EnableSound,
             PlatformUrl = PlatformUrl?.Trim() ?? ""
         };
@@ -134,12 +129,6 @@ public partial class SettingsViewModel : ObservableObject
 
         HasError = false;
         StatusMessage = "✓ Configurações salvas com sucesso!";
-    }
-
-    [RelayCommand]
-    private void Cancel()
-    {
-        // Janela secundária — o usuário fecha pelo botão X
     }
 
     private static bool TryParseTime(string input, out TimeSpan result)

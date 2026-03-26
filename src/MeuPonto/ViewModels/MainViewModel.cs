@@ -20,6 +20,8 @@ public partial class MainViewModel : ObservableObject
     private readonly ITrayIconService _trayIconService;
 
     private DispatcherQueueTimer? _uiTimer;
+    private SecondaryWindow? _historyWindow;
+    private SecondaryWindow? _settingsWindow;
 
     // ─── Status atual ────────────────────────────────────────────────
 
@@ -135,15 +137,29 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void OpenHistory()
     {
-        var win = new SecondaryWindow(typeof(HistoryPage), "Histórico", 620, 520);
-        win.Activate();
+        if (_historyWindow != null)
+        {
+            _historyWindow.Activate();
+            return;
+        }
+
+        _historyWindow = new SecondaryWindow(typeof(HistoryPage), "Histórico", 620, 520);
+        _historyWindow.WindowClosed += (_, _) => _historyWindow = null;
+        _historyWindow.Activate();
     }
 
     [RelayCommand]
     private void OpenSettings()
     {
-        var win = new SecondaryWindow(typeof(SettingsPage), "Configurações", 560, 680);
-        win.Activate();
+        if (_settingsWindow != null)
+        {
+            _settingsWindow.Activate();
+            return;
+        }
+
+        _settingsWindow = new SecondaryWindow(typeof(SettingsPage), "Configurações", 560, 680);
+        _settingsWindow.WindowClosed += (_, _) => _settingsWindow = null;
+        _settingsWindow.Activate();
     }
 
     // ─── Timer tick ──────────────────────────────────────────────────

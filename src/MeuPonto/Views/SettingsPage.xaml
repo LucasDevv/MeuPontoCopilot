@@ -2,11 +2,27 @@
     x:Class="MeuPonto.Views.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="using:MeuPonto.Converters">
+    xmlns:converters="using:MeuPonto.Converters"
+    xmlns:helpers="using:MeuPonto.Helpers">
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
         <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis" />
+
+        <!-- Estilo do botão circular de ajuda (?) -->
+        <Style x:Key="HelpButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="22" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="CornerRadius" Value="11" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Background" Value="{ThemeResource SubtleFillColorSecondaryBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="IsTabStop" Value="False" />
+        </Style>
     </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -29,27 +45,55 @@
                     BorderThickness="1" Margin="0,0,0,16">
                 <StackPanel Spacing="12">
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Meta principal de horas (HH:mm)" FontSize="13" />
-                        <TextBox Text="{x:Bind ViewModel.MainGoalHours, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="08:00" MaxLength="5" />
+                        <TextBlock Text="Meta principal de horas" FontSize="13" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Text="{x:Bind ViewModel.MainGoalHours, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="08:00" MaxLength="5"
+                                     helpers:TimeMaskBehavior.IsEnabled="True" />
+                            <Button Grid.Column="1" Style="{StaticResource HelpButtonStyle}" Margin="8,0,0,0"
+                                    ToolTipService.ToolTip="Quantidade de horas da jornada diária de trabalho. Ex.: 08:00 para 8 horas.">
+                                <FontIcon Glyph="&#xE897;" FontSize="10" />
+                            </Button>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Início dos alertas extras (HH:mm)" FontSize="13" />
-                        <TextBox Text="{x:Bind ViewModel.AlertStartTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="08:30" MaxLength="5" />
+                        <TextBlock Text="Início dos alertas extras" FontSize="13" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Text="{x:Bind ViewModel.AlertStartTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="08:30" MaxLength="5"
+                                     helpers:TimeMaskBehavior.IsEnabled="True" />
+                            <Button Grid.Column="1" Style="{StaticResource HelpButtonStyle}" Margin="8,0,0,0"
+                                    ToolTipService.ToolTip="Após quanto tempo de jornada os alertas extras começam. Deve ser >= meta principal.">
+                                <FontIcon Glyph="&#xE897;" FontSize="10" />
+                            </Button>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Intervalo entre alertas extras (HH:mm)" FontSize="13" />
-                        <TextBox Text="{x:Bind ViewModel.AlertInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="00:15" MaxLength="5" />
+                        <TextBlock Text="Intervalo entre alertas extras" FontSize="13" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Text="{x:Bind ViewModel.AlertInterval, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="00:15" MaxLength="5"
+                                     helpers:TimeMaskBehavior.IsEnabled="True" />
+                            <Button Grid.Column="1" Style="{StaticResource HelpButtonStyle}" Margin="8,0,0,0"
+                                    ToolTipService.ToolTip="De quanto em quanto tempo um novo alerta será exibido após o início dos alertas extras.">
+                                <FontIcon Glyph="&#xE897;" FontSize="10" />
+                            </Button>
+                        </Grid>
                     </StackPanel>
 
                     <StackPanel Spacing="4">
-                        <TextBlock Text="Limite máximo absoluto (HH:mm)" FontSize="13" />
-                        <TextBox Text="{x:Bind ViewModel.MaxLimit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 PlaceholderText="10:00" MaxLength="5" />
+                        <TextBlock Text="Limite máximo absoluto" FontSize="13" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Text="{x:Bind ViewModel.MaxLimit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     PlaceholderText="10:00" MaxLength="5"
+                                     helpers:TimeMaskBehavior.IsEnabled="True" />
+                            <Button Grid.Column="1" Style="{StaticResource HelpButtonStyle}" Margin="8,0,0,0"
+                                    ToolTipService.ToolTip="Limite máximo de horas trabalhadas no dia. Após esse limite, um alerta crítico será exibido.">
+                                <FontIcon Glyph="&#xE897;" FontSize="10" />
+                            </Button>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -64,9 +108,15 @@
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1" Margin="0,0,0,16">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Pasta do histórico (vazio = padrão)" FontSize="13" />
-                    <TextBox Text="{x:Bind ViewModel.HistoryPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="%LOCALAPPDATA%\MeuPonto" />
+                    <TextBlock Text="Pasta do histórico" FontSize="13" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Text="{x:Bind ViewModel.HistoryPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="%LOCALAPPDATA%\MeuPonto" />
+                        <Button Grid.Column="1" Style="{StaticResource HelpButtonStyle}" Margin="8,0,0,0"
+                                ToolTipService.ToolTip="Pasta onde o arquivo de histórico será salvo. Deixe vazio para usar a pasta padrão (%LOCALAPPDATA%\MeuPonto).">
+                            <FontIcon Glyph="&#xE897;" FontSize="10" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -81,8 +131,14 @@
                     BorderThickness="1" Margin="0,0,0,16">
                 <StackPanel Spacing="4">
                     <TextBlock Text="Link da plataforma de ponto" FontSize="13" />
-                    <TextBox Text="{x:Bind ViewModel.PlatformUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             PlaceholderText="https://ponto.empresa.com" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Text="{x:Bind ViewModel.PlatformUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="https://ponto.empresa.com" />
+                        <Button Grid.Column="1" Style="{StaticResource HelpButtonStyle}" Margin="8,0,0,0"
+                                ToolTipService.ToolTip="URL da plataforma de registro de ponto da empresa. Se preenchido, um ícone de acesso rápido aparecerá na barra de título.">
+                            <FontIcon Glyph="&#xE897;" FontSize="10" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -96,14 +152,25 @@
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                     BorderThickness="1" Margin="0,0,0,16">
                 <StackPanel Spacing="12">
-                    <ToggleSwitch Header="Minimizar para bandeja ao fechar"
-                                  IsOn="{x:Bind ViewModel.MinimizeToTrayOnClose, Mode=TwoWay}" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <ToggleSwitch Header="Habilitar som nas notificações"
+                                      IsOn="{x:Bind ViewModel.EnableSound, Mode=TwoWay}" />
+                        <Button Grid.Column="1" Style="{StaticResource HelpButtonStyle}"
+                                VerticalAlignment="Bottom" Margin="8,0,0,8"
+                                ToolTipService.ToolTip="Quando ativado, as notificações de alerta emitirão um som.">
+                            <FontIcon Glyph="&#xE897;" FontSize="10" />
+                        </Button>
+                    </Grid>
 
-                    <ToggleSwitch Header="Habilitar som nas notificações"
-                                  IsOn="{x:Bind ViewModel.EnableSound, Mode=TwoWay}" />
-
-                    <ToggleSwitch Header="Iniciar com o Windows"
-                                  IsOn="{x:Bind ViewModel.StartWithWindows, Mode=TwoWay}" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <ToggleSwitch Header="Iniciar com o Windows"
+                                      IsOn="{x:Bind ViewModel.StartWithWindows, Mode=TwoWay}" />
+                        <Button Grid.Column="1" Style="{StaticResource HelpButtonStyle}"
+                                VerticalAlignment="Bottom" Margin="8,0,0,8"
+                                ToolTipService.ToolTip="Quando ativado, o aplicativo será iniciado automaticamente junto com o Windows.">
+                            <FontIcon Glyph="&#xE897;" FontSize="10" />
+                        </Button>
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -119,14 +186,11 @@
                        Visibility="{x:Bind ViewModel.HasError, Mode=OneWay, Converter={StaticResource InverseBoolToVis}}"
                        x:Name="SuccessText" />
 
-            <!-- ═══ Botões ═══ -->
-            <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                <Button Content="Cancelar"
-                        Command="{x:Bind ViewModel.CancelCommand}" />
-                <Button Content="Salvar"
-                        Command="{x:Bind ViewModel.SaveCommand}"
-                        Style="{StaticResource AccentButtonStyle}" />
-            </StackPanel>
+            <!-- ═══ Botão Salvar ═══ -->
+            <Button Content="Salvar"
+                    Command="{x:Bind ViewModel.SaveCommand}"
+                    Style="{StaticResource AccentButtonStyle}"
+                    HorizontalAlignment="Right" />
 
         </StackPanel>
     </ScrollViewer>

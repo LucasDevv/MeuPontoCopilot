@@ -14,6 +14,9 @@ public sealed partial class SecondaryWindow : Window
 {
     private AppWindow? _appWindow;
 
+    /// <summary>Disparado quando a janela é fechada.</summary>
+    public event EventHandler? WindowClosed;
+
     public SecondaryWindow(Type pageType, string title, int width, int height)
     {
         InitializeComponent();
@@ -43,6 +46,15 @@ public sealed partial class SecondaryWindow : Window
         {
             _appWindow.Resize(new SizeInt32(width, height));
             _appWindow.Title = title;
+
+            // Sempre por cima (fica acima da janela principal)
+            if (_appWindow.Presenter is OverlappedPresenter presenter)
+            {
+                presenter.IsAlwaysOnTop = true;
+            }
+
+            _appWindow.Closing += (_, _) => WindowClosed?.Invoke(this, EventArgs.Empty);
+
             CenterOnScreen(_appWindow);
         }
 
