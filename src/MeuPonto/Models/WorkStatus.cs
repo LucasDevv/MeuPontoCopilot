@@ -9,5 +9,8 @@ public enum WorkStatus
     OffDuty,
 
     /// <summary>Em jornada — entrada registrada.</summary>
-    OnDuty
+    OnDuty,
+
+    /// <summary>Em pausa — jornada ativa mas pausada.</summary>
+    Paused
 }

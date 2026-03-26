@@ -37,19 +37,20 @@
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.Header>
-                <Grid ColumnDefinitions="*,*,*,*,*" Padding="12,8"
+                <Grid ColumnDefinitions="*,*,*,*,*,*" Padding="12,8"
                       Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
                       CornerRadius="6,6,0,0">
                     <TextBlock Text="Data" FontSize="12" FontWeight="SemiBold" Grid.Column="0" />
                     <TextBlock Text="Entrada" FontSize="12" FontWeight="SemiBold" Grid.Column="1" />
                     <TextBlock Text="Saída" FontSize="12" FontWeight="SemiBold" Grid.Column="2" />
                     <TextBlock Text="Total" FontSize="12" FontWeight="SemiBold" Grid.Column="3" />
-                    <TextBlock Text="Status" FontSize="12" FontWeight="SemiBold" Grid.Column="4" />
+                    <TextBlock Text="Pausas" FontSize="12" FontWeight="SemiBold" Grid.Column="4" />
+                    <TextBlock Text="Status" FontSize="12" FontWeight="SemiBold" Grid.Column="5" />
                 </Grid>
             </ListView.Header>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid ColumnDefinitions="*,*,*,*,*" Padding="12,6"
+                    <Grid ColumnDefinitions="*,*,*,*,*,*" Padding="12,6"
                           Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                           BorderThickness="0,0,0,1">
@@ -61,7 +62,9 @@
                                    VerticalAlignment="Center" />
                         <TextBlock Text="{Binding TotalWorked}" FontSize="13" FontWeight="SemiBold" Grid.Column="3"
                                    VerticalAlignment="Center" />
-                        <Border Grid.Column="4" CornerRadius="10" Padding="8,3"
+                        <TextBlock Text="{Binding PauseTime}" FontSize="13" Grid.Column="4"
+                                   VerticalAlignment="Center" Opacity="0.7" />
+                        <Border Grid.Column="5" CornerRadius="10" Padding="8,3"
                                 HorizontalAlignment="Left" VerticalAlignment="Center"
                                 Background="{Binding StatusBadgeColor}">
                             <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold"

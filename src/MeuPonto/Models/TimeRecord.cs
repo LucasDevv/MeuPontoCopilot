@@ -17,6 +17,12 @@ public class TimeRecord
     /// <summary>Total trabalhado nessa sessão.</summary>
     public TimeSpan TotalWorked { get; set; }
 
+    /// <summary>Tempo total em pausas.</summary>
+    public TimeSpan TotalPauseTime { get; set; }
+
+    /// <summary>Quantidade de pausas realizadas.</summary>
+    public int PauseCount { get; set; }
+
     /// <summary>Status do registro (completo / incompleto).</summary>
     public RecordStatus Status { get; set; } = RecordStatus.Incomplete;
 }

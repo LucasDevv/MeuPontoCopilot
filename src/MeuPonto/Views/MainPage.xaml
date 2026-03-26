@@ -20,7 +20,10 @@
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Ellipse Width="8" Height="8"
                              Fill="#4CAF50"
-                             Visibility="{x:Bind ViewModel.IsOnDuty, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                             Visibility="{x:Bind ViewModel.CanPause, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+                    <Ellipse Width="8" Height="8"
+                             Fill="#FF9800"
+                             Visibility="{x:Bind ViewModel.IsPaused, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
                     <Ellipse Width="8" Height="8"
                              Fill="#9E9E9E"
                              Visibility="{x:Bind ViewModel.IsOffDuty, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
@@ -51,6 +54,10 @@
                     <Run Text="Limite máximo:" />
                     <Run Text="{x:Bind ViewModel.MaxExitText, Mode=OneWay}" FontWeight="SemiBold" />
                 </TextBlock>
+                <TextBlock Text="{x:Bind ViewModel.PauseTimeText, Mode=OneWay}"
+                           FontSize="12" Opacity="0.55"
+                           HorizontalAlignment="Center"
+                           Foreground="#FF9800" />
             </StackPanel>
 
             <!-- ═══ Relógio atual ═══ -->
@@ -69,6 +76,17 @@
                 <Button Content="Saída"
                         Command="{x:Bind ViewModel.ClockOutCommand}"
                         HorizontalAlignment="Stretch" Height="36" />
+
+                <Button Content="Pausar"
+                        Command="{x:Bind ViewModel.PauseCommand}"
+                        HorizontalAlignment="Stretch" Height="36"
+                        Visibility="{x:Bind ViewModel.CanPause, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
+
+                <Button Content="Retomar"
+                        Command="{x:Bind ViewModel.ResumeCommand}"
+                        HorizontalAlignment="Stretch" Height="36"
+                        Style="{StaticResource AccentButtonStyle}"
+                        Visibility="{x:Bind ViewModel.CanResume, Mode=OneWay, Converter={StaticResource BoolToVis}}" />
 
                 <Grid ColumnDefinitions="*,8,*" Margin="0,4,0,0">
                     <Button Content="Histórico"

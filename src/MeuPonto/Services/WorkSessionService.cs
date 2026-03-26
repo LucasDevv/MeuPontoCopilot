@@ -21,6 +21,7 @@ public class WorkSessionService : IWorkSessionService
     };
 
     public bool IsActive => _activeSession?.IsActive == true;
+    public bool IsPaused => _activeSession?.IsPaused == true;
     public DateTime? EntryTime => _activeSession?.IsActive == true ? _activeSession.EntryTime : null;
 
     public event EventHandler? SessionChanged;
@@ -42,7 +43,9 @@ public class WorkSessionService : IWorkSessionService
         _activeSession = new ActiveSession
         {
             EntryTime = DateTime.Now,
-            IsActive = true
+            IsActive = true,
+            IsPaused = false,
+            Pauses = []
         };
 
         await PersistSessionAsync();
@@ -65,8 +68,21 @@ public class WorkSessionService : IWorkSessionService
         if (!IsActive || _activeSession == null)
             return null;
 
+        // Se estiver pausado, encerra a pausa ativa antes de finalizar
+        if (_activeSession.IsPaused)
+        {
+            var activePause = _activeSession.Pauses.LastOrDefault(p => p.End == null);
+            if (activePause != null)
+                activePause.End = DateTime.Now;
+
+            _activeSession.IsPaused = false;
+        }
+
         var exitTime = DateTime.Now;
-        var totalWorked = exitTime - _activeSession.EntryTime;
+        var totalPauseTime = CalculateTotalPauseTime();
+        var totalWorked = (exitTime - _activeSession.EntryTime) - totalPauseTime;
+        if (totalWorked < TimeSpan.Zero)
+            totalWorked = TimeSpan.Zero;
 
         var record = new TimeRecord
         {
@@ -74,6 +90,8 @@ public class WorkSessionService : IWorkSessionService
             EntryTime = _activeSession.EntryTime,
             ExitTime = exitTime,
             TotalWorked = totalWorked,
+            TotalPauseTime = totalPauseTime,
+            PauseCount = _activeSession.Pauses.Count,
             Status = RecordStatus.Complete
         };
 
@@ -92,8 +110,46 @@ public class WorkSessionService : IWorkSessionService
         if (!IsActive || _activeSession == null)
             return TimeSpan.Zero;
 
-        // Sempre calcula com DateTime real, nunca com timer
-        return DateTime.Now - _activeSession.EntryTime;
+        var totalPauseTime = CalculateTotalPauseTime();
+        var elapsed = (DateTime.Now - _activeSession.EntryTime) - totalPauseTime;
+        return elapsed > TimeSpan.Zero ? elapsed : TimeSpan.Zero;
+    }
+
+    public TimeSpan GetTotalPauseTime()
+    {
+        if (!IsActive || _activeSession == null)
+            return TimeSpan.Zero;
+
+        return CalculateTotalPauseTime();
+    }
+
+    public async Task<bool> PauseSessionAsync()
+    {
+        if (!IsActive || _activeSession == null || _activeSession.IsPaused)
+            return false;
+
+        _activeSession.IsPaused = true;
+        _activeSession.Pauses.Add(new PauseRecord { Start = DateTime.Now });
+
+        await PersistSessionAsync();
+        SessionChanged?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    public async Task<bool> ResumeSessionAsync()
+    {
+        if (!IsActive || _activeSession == null || !_activeSession.IsPaused)
+            return false;
+
+        var activePause = _activeSession.Pauses.LastOrDefault(p => p.End == null);
+        if (activePause != null)
+            activePause.End = DateTime.Now;
+
+        _activeSession.IsPaused = false;
+
+        await PersistSessionAsync();
+        SessionChanged?.Invoke(this, EventArgs.Empty);
+        return true;
     }
 
     public async Task RestoreSessionAsync()
@@ -118,6 +174,14 @@ public class WorkSessionService : IWorkSessionService
         }
 
         _activeSession = null;
+    }
+
+    private TimeSpan CalculateTotalPauseTime()
+    {
+        if (_activeSession?.Pauses == null || _activeSession.Pauses.Count == 0)
+            return TimeSpan.Zero;
+
+        return _activeSession.Pauses.Aggregate(TimeSpan.Zero, (total, p) => total + p.Duration);
     }
 
     private async Task PersistSessionAsync()

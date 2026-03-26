@@ -119,6 +119,9 @@ public partial class HistoryViewModel : ObservableObject
                 EntryTime = r.EntryTime.HasValue ? TimeFormatHelper.FormatTime(r.EntryTime.Value) : "--:--:--",
                 ExitTime = r.ExitTime.HasValue ? TimeFormatHelper.FormatTime(r.ExitTime.Value) : "--:--:--",
                 TotalWorked = TimeFormatHelper.FormatDuration(r.TotalWorked),
+                PauseTime = r.PauseCount > 0
+                    ? $"{TimeFormatHelper.FormatDurationShort(r.TotalPauseTime)} ({r.PauseCount}x)"
+                    : "--",
                 Status = r.Status == RecordStatus.Complete ? "Completo" : "Incompleto",
                 IsComplete = r.Status == RecordStatus.Complete
             }));
@@ -139,6 +142,7 @@ public class TimeRecordDisplay
     public string EntryTime { get; set; } = "";
     public string ExitTime { get; set; } = "";
     public string TotalWorked { get; set; } = "";
+    public string PauseTime { get; set; } = "";
     public string Status { get; set; } = "";
     public bool IsComplete { get; set; }
     public SolidColorBrush StatusBadgeColor => IsComplete ? CompleteBrush : IncompleteBrush;

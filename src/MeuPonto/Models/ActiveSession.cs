@@ -10,4 +10,10 @@ public class ActiveSession
 
     /// <summary>Indica se há uma jornada ativa.</summary>
     public bool IsActive { get; set; }
+
+    /// <summary>Indica se a sessão está pausada.</summary>
+    public bool IsPaused { get; set; }
+
+    /// <summary>Registros de pausas da sessão.</summary>
+    public List<PauseRecord> Pauses { get; set; } = [];
 }

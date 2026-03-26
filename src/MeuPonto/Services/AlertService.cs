@@ -60,7 +60,7 @@ public class AlertService : IAlertService
             using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
             while (await timer.WaitForNextTickAsync(ct))
             {
-                if (!_workSessionService.IsActive)
+                if (!_workSessionService.IsActive || _workSessionService.IsPaused)
                     continue;
 
                 CheckAlerts();

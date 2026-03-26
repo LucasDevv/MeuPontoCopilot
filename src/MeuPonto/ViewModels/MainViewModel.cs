@@ -40,10 +40,28 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ClockInCommand))]
     [NotifyCanExecuteChangedFor(nameof(ClockOutCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PauseCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ResumeCommand))]
     [NotifyPropertyChangedFor(nameof(IsOffDuty))]
+    [NotifyPropertyChangedFor(nameof(CanPause))]
+    [NotifyPropertyChangedFor(nameof(CanResume))]
     public partial bool IsOnDuty { get; set; }
 
     public bool IsOffDuty => !IsOnDuty;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PauseCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ResumeCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ClockOutCommand))]
+    [NotifyPropertyChangedFor(nameof(CanPause))]
+    [NotifyPropertyChangedFor(nameof(CanResume))]
+    public partial bool IsPaused { get; set; }
+
+    [ObservableProperty]
+    public partial string PauseTimeText { get; set; } = "";
+
+    public bool CanPause => IsOnDuty && !IsPaused;
+    public bool CanResume => IsOnDuty && IsPaused;
 
     // ─── Horários estimados de saída ─────────────────────────────────
 
@@ -80,8 +98,9 @@ public partial class MainViewModel : ObservableObject
         if (_workSessionService.IsActive)
         {
             IsOnDuty = true;
+            IsPaused = _workSessionService.IsPaused;
             EntryTimeText = TimeFormatHelper.FormatTime(_workSessionService.EntryTime!.Value);
-            StatusText = "Em jornada";
+            StatusText = _workSessionService.IsPaused ? "Pausado" : "Em jornada";
             RefreshEstimatedTimes();
             _alertService.StartMonitoring();
         }
@@ -108,6 +127,8 @@ public partial class MainViewModel : ObservableObject
         if (!success) return;
 
         IsOnDuty = true;
+        IsPaused = false;
+        PauseTimeText = "";
         EntryTimeText = TimeFormatHelper.FormatTime(_workSessionService.EntryTime!.Value);
         StatusText = "Em jornada";
         ElapsedTimeText = "00:00:00";
@@ -124,6 +145,8 @@ public partial class MainViewModel : ObservableObject
         if (record == null) return;
 
         IsOnDuty = false;
+        IsPaused = false;
+        PauseTimeText = "";
         StatusText = "Fora do expediente";
         EntryTimeText = "--:--:--";
         ElapsedTimeText = TimeFormatHelper.FormatDuration(record.TotalWorked);
@@ -132,6 +155,30 @@ public partial class MainViewModel : ObservableObject
 
         _alertService.StopMonitoring();
         _trayIconService.UpdateTooltip("Meu Ponto — Fora do expediente");
+    }
+
+    [RelayCommand(CanExecute = nameof(CanPause))]
+    private async Task Pause()
+    {
+        var success = await _workSessionService.PauseSessionAsync();
+        if (!success) return;
+
+        IsPaused = true;
+        StatusText = "Pausado";
+        RefreshEstimatedTimes();
+        _trayIconService.UpdateTooltip("Meu Ponto — Pausado");
+    }
+
+    [RelayCommand(CanExecute = nameof(CanResume))]
+    private async Task Resume()
+    {
+        var success = await _workSessionService.ResumeSessionAsync();
+        if (!success) return;
+
+        IsPaused = false;
+        StatusText = "Em jornada";
+        RefreshEstimatedTimes();
+        _trayIconService.UpdateTooltip("Meu Ponto — Em jornada");
     }
 
     [RelayCommand]
@@ -143,7 +190,7 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        _historyWindow = new SecondaryWindow(typeof(HistoryPage), "Histórico", 620, 520);
+        _historyWindow = new SecondaryWindow(typeof(HistoryPage), "Histórico", 740, 520);
         _historyWindow.WindowClosed += (_, _) => _historyWindow = null;
         _historyWindow.Activate();
     }
@@ -172,6 +219,13 @@ public partial class MainViewModel : ObservableObject
         {
             var elapsed = _workSessionService.GetElapsedTime();
             ElapsedTimeText = TimeFormatHelper.FormatDuration(elapsed);
+
+            var totalPause = _workSessionService.GetTotalPauseTime();
+            PauseTimeText = totalPause > TimeSpan.Zero
+                ? $"Pausa: {TimeFormatHelper.FormatDuration(totalPause)}"
+                : "";
+
+            RefreshEstimatedTimes();
         }
     }
 
@@ -189,9 +243,10 @@ public partial class MainViewModel : ObservableObject
 
         var entry = _workSessionService.EntryTime.Value;
         var settings = _settingsService.Settings;
+        var totalPause = _workSessionService.GetTotalPauseTime();
 
-        var estimatedExit = entry + settings.MainGoalHours;
-        var maxExit = entry + settings.MaxLimit;
+        var estimatedExit = entry + settings.MainGoalHours + totalPause;
+        var maxExit = entry + settings.MaxLimit + totalPause;
 
         EstimatedExitText = estimatedExit.ToString("HH:mm");
         MaxExitText = maxExit.ToString("HH:mm");
