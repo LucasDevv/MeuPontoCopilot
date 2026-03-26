@@ -40,6 +40,9 @@ public partial class SettingsViewModel : ObservableObject
     public partial bool EnableSound { get; set; } = true;
 
     [ObservableProperty]
+    public partial string PlatformUrl { get; set; } = "";
+
+    [ObservableProperty]
     public partial string StatusMessage { get; set; } = "";
 
     [ObservableProperty]
@@ -62,6 +65,7 @@ public partial class SettingsViewModel : ObservableObject
         StartWithWindows = s.StartWithWindows;
         MinimizeToTrayOnClose = s.MinimizeToTrayOnClose;
         EnableSound = s.EnableSound;
+        PlatformUrl = s.PlatformUrl;
         StatusMessage = "";
         HasError = false;
     }
@@ -122,7 +126,8 @@ public partial class SettingsViewModel : ObservableObject
             HistoryPath = HistoryPath?.Trim() ?? "",
             StartWithWindows = StartWithWindows,
             MinimizeToTrayOnClose = MinimizeToTrayOnClose,
-            EnableSound = EnableSound
+            EnableSound = EnableSound,
+            PlatformUrl = PlatformUrl?.Trim() ?? ""
         };
 
         await _settingsService.SaveAsync(settings);

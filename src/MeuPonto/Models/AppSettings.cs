@@ -36,6 +36,9 @@ public class AppSettings
     /// <summary>Habilitar som nas notificações.</summary>
     public bool EnableSound { get; set; } = true;
 
+    /// <summary>Link da plataforma de ponto (ex.: https://ponto.empresa.com).</summary>
+    public string PlatformUrl { get; set; } = string.Empty;
+
     /// <summary>Cria uma cópia profunda das configurações.</summary>
     public AppSettings Clone()
     {
@@ -48,7 +51,8 @@ public class AppSettings
             HistoryPath = HistoryPath,
             StartWithWindows = StartWithWindows,
             MinimizeToTrayOnClose = MinimizeToTrayOnClose,
-            EnableSound = EnableSound
+            EnableSound = EnableSound,
+            PlatformUrl = PlatformUrl
         };
     }
 }

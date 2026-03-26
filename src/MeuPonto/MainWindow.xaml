@@ -5,6 +5,21 @@
     Title="Meu Ponto">
 
     <Grid>
+        <!-- Custom Title Bar -->
+        <Grid x:Name="AppTitleBar" Height="32" VerticalAlignment="Top" Canvas.ZIndex="1">
+            <Button x:Name="PlatformLinkButton"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Stretch"
+                    Visibility="Collapsed"
+                    Click="OnPlatformLinkClick"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="10,0"
+                    ToolTipService.ToolTip="Abrir plataforma de ponto">
+                <FontIcon Glyph="&#xE774;" FontSize="14"/>
+            </Button>
+        </Grid>
+
         <Frame x:Name="ContentFrame" />
     </Grid>
 </Window>

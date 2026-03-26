@@ -70,6 +70,22 @@
                 </StackPanel>
             </Border>
 
+            <!-- ═══ Seção: Plataforma ═══ -->
+            <TextBlock Text="PLATAFORMA DE PONTO" FontSize="12" FontWeight="SemiBold"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       Margin="0,0,0,8" />
+
+            <Border CornerRadius="8" Padding="16"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" Margin="0,0,0,16">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Link da plataforma de ponto" FontSize="13" />
+                    <TextBox Text="{x:Bind ViewModel.PlatformUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="https://ponto.empresa.com" />
+                </StackPanel>
+            </Border>
+
             <!-- ═══ Seção: Comportamento ═══ -->
             <TextBlock Text="COMPORTAMENTO" FontSize="12" FontWeight="SemiBold"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"

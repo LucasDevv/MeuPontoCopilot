@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
+using MeuPonto.Services.Interfaces;
 using MeuPonto.Views;
 using Windows.Graphics;
 
@@ -15,19 +16,30 @@ public sealed partial class MainWindow : Window
 {
     private AppWindow? _appWindow;
     private bool _isHidingToTray;
+    private readonly ISettingsService _settingsService;
 
     public MainWindow()
     {
         InitializeComponent();
 
+        _settingsService = App.GetService<ISettingsService>();
+
         // Estender conteúdo até a titlebar (mesma cor do background)
         ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
 
         // Backdrop Acrylic para visual translúcido moderno
         SystemBackdrop = new DesktopAcrylicBackdrop();
 
         // Configurar janela
         ConfigureWindow();
+
+        // Exibir botão da plataforma se configurado
+        UpdatePlatformButton();
+        _settingsService.SettingsChanged += (_, _) =>
+        {
+            DispatcherQueue.TryEnqueue(UpdatePlatformButton);
+        };
 
         // Navegar para página principal
         ContentFrame.Navigate(typeof(MainPage));
@@ -55,11 +67,12 @@ public sealed partial class MainWindow : Window
 
             _appWindow.Title = "Meu Ponto";
 
-            // Remover botão de maximizar
+            // Remover botão de maximizar + sempre por cima
             if (_appWindow.Presenter is OverlappedPresenter presenter)
             {
                 presenter.IsMaximizable = false;
                 presenter.IsResizable = true;
+                presenter.IsAlwaysOnTop = true;
             }
 
             // Interceptar minimização → esconder da taskbar (ficar só na bandeja)
@@ -69,6 +82,27 @@ public sealed partial class MainWindow : Window
         }
 
         Title = "Meu Ponto";
+    }
+
+    private void UpdatePlatformButton()
+    {
+        var url = _settingsService.Settings.PlatformUrl;
+        PlatformLinkButton.Visibility = string.IsNullOrWhiteSpace(url)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
+
+    private async void OnPlatformLinkClick(object sender, RoutedEventArgs e)
+    {
+        var url = _settingsService.Settings.PlatformUrl;
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                && (uri.Scheme == "http" || uri.Scheme == "https"))
+            {
+                await Windows.System.Launcher.LaunchUriAsync(uri);
+            }
+        }
     }
 
     private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
